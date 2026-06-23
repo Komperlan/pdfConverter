@@ -1,0 +1,12 @@
+.git
+.gitignore
+.vscode
+.idea
+.env
+*.carbone-license
+**/target
+storage
+frontend
+docs
+test-data
+README.md

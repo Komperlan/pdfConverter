@@ -1,0 +1,74 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 40s
+  task:
+    scheduling:
+      pool:
+        size: 2
+      thread-name-prefix: docconverter-scheduler-
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    clean-disabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+      file-size-threshold: 0B
+
+server:
+  shutdown: graceful
+
+doc-converter:
+  job:
+    expiration: ${CONVERSION_JOB_EXPIRATION:24h}
+    max-attempts: ${CONVERSION_JOB_MAX_ATTEMPTS:3}
+  carbone:
+    base-url: ${CARBONE_BASE_URL:http://localhost:4000}
+    api-token: ${CARBONE_API_TOKEN:}
+    api-version: ${CARBONE_API_VERSION:}
+    converter: ${CARBONE_CONVERTER:L}
+    connect-timeout: ${CARBONE_CONNECT_TIMEOUT:5s}
+    read-timeout: ${CARBONE_READ_TIMEOUT:65s}
+    max-response-size: ${CARBONE_MAX_RESPONSE_SIZE:50MB}
+  worker:
+    enabled: ${CONVERSION_WORKER_ENABLED:true}
+    max-parallelism: ${CONVERSION_WORKER_MAX_PARALLELISM:2}
+    poll-interval: ${CONVERSION_WORKER_POLL_INTERVAL:1s}
+    initial-delay: ${CONVERSION_WORKER_INITIAL_DELAY:1s}
+    shutdown-timeout: ${CONVERSION_WORKER_SHUTDOWN_TIMEOUT:30s}
+  retry:
+    initial-delay: ${CONVERSION_RETRY_INITIAL_DELAY:5s}
+    max-delay: ${CONVERSION_RETRY_MAX_DELAY:1m}
+    multiplier: ${CONVERSION_RETRY_MULTIPLIER:2}
+  recovery:
+    enabled: ${CONVERSION_RECOVERY_ENABLED:true}
+    scan-interval: ${CONVERSION_RECOVERY_SCAN_INTERVAL:30s}
+    initial-delay: ${CONVERSION_RECOVERY_INITIAL_DELAY:30s}
+    stale-timeout: ${CONVERSION_RECOVERY_STALE_TIMEOUT:2m}
+    batch-size: ${CONVERSION_RECOVERY_BATCH_SIZE:100}
+  retention:
+    enabled: ${CONVERSION_RETENTION_ENABLED:true}
+    cleanup-interval: ${CONVERSION_RETENTION_CLEANUP_INTERVAL:1m}
+    initial-delay: ${CONVERSION_RETENTION_INITIAL_DELAY:30s}
+    batch-size: ${CONVERSION_RETENTION_BATCH_SIZE:100}
+  storage:
+    local:
+      root-directory: ${DOC_CONVERTER_STORAGE_ROOT:./storage}
+      source-directory: source
+      result-directory: result
+      create-directories: true
