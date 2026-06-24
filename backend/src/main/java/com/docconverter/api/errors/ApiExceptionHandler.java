@@ -28,6 +28,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -96,6 +97,11 @@ public class ApiExceptionHandler {
             HttpServletRequest request
     ) {
         return error(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoResourceFound(HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, "Resource not found", request);
     }
 
     @ExceptionHandler(ConversionResultNotReadyException.class)

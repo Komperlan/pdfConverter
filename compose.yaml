@@ -22,23 +22,16 @@ services:
       - docconverter-network
 
   carbone:
-    image: carbone/carbone-ee:full
+    image: carbone/carbone-ee:full-5.8.0
     restart: unless-stopped
     environment:
       CARBONE_EE_LICENSE: ${CARBONE_EE_LICENSE:-}
       CARBONE_EE_STUDIO: ${CARBONE_EE_STUDIO:-false}
-      CARBONE_EE_FACTORIES: ${CARBONE_EE_FACTORIES:-2}
-      CARBONE_EE_ATTEMPTS: 1
-      CARBONE_USE_S3_PLUGIN: "false"
-    ports:
-      - "${CARBONE_PORT:-4000}:4000"
-    volumes:
-      - carbone-templates:/app/template
-      - carbone-renders:/app/render
+      CARBONE_EE_FACTORIES: ${CARBONE_EE_FACTORIES:-1}
     healthcheck:
       test:
         - CMD-SHELL
-        - curl -fsS http://localhost:4000/status >/dev/null || wget -q --spider http://localhost:4000/status
+        - grep -q ':0FA0 .* 0A ' /proc/net/tcp6
       interval: 10s
       timeout: 5s
       retries: 12
@@ -103,11 +96,35 @@ services:
     networks:
       - docconverter-network
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -q
+        - --spider
+        - http://127.0.0.1/
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - docconverter-network
+
 volumes:
   postgres-data:
   backend-storage:
-  carbone-templates:
-  carbone-renders:
 
 networks:
   docconverter-network:

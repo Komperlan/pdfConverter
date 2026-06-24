@@ -1,8 +1,8 @@
-# DocConverter Backend
+# DocConverter
 
-Backend-сервис асинхронной конвертации документов `DOC` и `DOCX` в `PDF`.
-Клиент загружает файл, получает UUID задания, проверяет его статус и скачивает
-готовый результат отдельным запросом.
+Веб-приложение для асинхронной конвертации документов `DOC` и `DOCX` в `PDF`.
+React-клиент загружает файл, отслеживает состояние задания и позволяет скачать
+готовый результат. Backend выполняет обработку через Carbone.
 
 ## Возможности
 
@@ -15,6 +15,7 @@ Backend-сервис асинхронной конвертации докуме�
 - экспоненциальные повторные попытки;
 - восстановление зависших `PROCESSING`-заданий;
 - удаление файлов после окончания срока хранения;
+- React-интерфейс загрузки, проверки статуса и скачивания результата;
 - OpenAPI и Swagger UI.
 
 ## Стек
@@ -29,6 +30,8 @@ Backend-сервис асинхронной конвертации докуме�
 | Testcontainers | 2.0.5 |
 | Конвертер | Carbone HTTP API |
 | Сборка | Maven |
+| Frontend | React 19, TypeScript, Vite |
+| Web proxy | nginx |
 
 Точные версии библиотек зафиксированы в `pom.xml` и `backend/pom.xml`.
 
@@ -117,8 +120,15 @@ Swagger UI после запуска доступен по адресу
 Через Docker Compose:
 
 ```bash
-POSTGRES_PASSWORD=local-password docker compose up --build
+docker compose up --build
 ```
+
+Локальные значения читаются из `.env`. Репозиторий содержит безопасный шаблон
+`.env.example`; сам `.env` исключён из Git.
+
+После запуска веб-интерфейс доступен на `http://localhost:3000`, backend API —
+на `http://localhost:8080`. Порт интерфейса можно изменить переменной
+`FRONTEND_PORT`.
 
 Локальный запуск только backend:
 
@@ -141,8 +151,20 @@ docker compose down -v
 
 ## Тесты
 
+Backend:
+
 ```bash
 mvn -pl backend test
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm ci
+npm run lint
+npm test -- --run
+npm run build
 ```
 
 Unit-тесты проверяют доменные переходы, загрузку, validation, processing,

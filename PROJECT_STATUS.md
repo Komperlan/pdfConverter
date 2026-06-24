@@ -1,9 +1,10 @@
 # Состояние проекта
 
-Актуализировано: 22 июня 2026 года.
+Актуализировано: 24 июня 2026 года.
 
-DocConverter находится в состоянии рабочего backend MVP. Реализован полный
-сценарий от загрузки DOC/DOCX до асинхронной обработки и скачивания PDF.
+DocConverter находится в состоянии рабочего full-stack MVP. Реализован полный
+сценарий от загрузки DOC/DOCX в веб-интерфейсе до асинхронной обработки и
+скачивания PDF.
 
 ## Реализовано
 
@@ -13,20 +14,27 @@ DocConverter находится в состоянии рабочего backend M
 - HTTP adapter Carbone;
 - worker, retry backoff и recovery зависших попыток;
 - retention cleanup и статус `EXPIRED`;
-- Dockerfile и Docker Compose;
+- React/Vite frontend с клиентской валидацией и контролируемым polling;
+- same-origin nginx proxy для frontend API-запросов;
+- отдельные Dockerfile для backend и frontend, общий Docker Compose;
 - unit, HTTP integration и PostgreSQL Testcontainers tests.
 
 ## Не проверено
 
-- end-to-end конвертация настоящего DOC/DOCX официальным Docker-образом Carbone;
 - повторный Testcontainers-прогон PostgreSQL после схлопывания схемы в baseline;
-- полный Docker Compose запуск после последнего изменения baseline-схемы.
+- визуальная проверка frontend в реальном браузере на desktop и mobile.
 
 ## Последняя проверка
 
-- 65 unit/MockMvc/storage тестов: успешно;
+- 74 unit/MockMvc/storage/integration теста: успешно;
 - test compilation всего набора: успешно;
 - сборка executable JAR: успешно;
-- `docker compose config`: успешно.
+- полный Docker Compose стек: все четыре сервиса healthy;
+- ручной end-to-end через frontend proxy: DOCX успешно преобразован в PDF;
+- загрузка, polling, скачивание и JSON-ошибки API: успешно;
+- `docker compose config`: успешно;
+- frontend lint: успешно;
+- frontend tests: 6 тестов успешно;
+- frontend production build: успешно.
 
 Подробные команды запуска, конфигурация и ограничения описаны в `README.md`.
