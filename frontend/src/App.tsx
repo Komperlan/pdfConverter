@@ -36,14 +36,6 @@ function validateFile(file: File): string | null {
   return null;
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} Б`;
-  }
-
-  return `${(bytes / 1024 / 1024).toFixed(2)} МБ`;
-}
-
 function wait(milliseconds: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     const handleAbort = () => {
@@ -117,6 +109,7 @@ function App() {
   const requestRef = useRef<AbortController | null>(null);
 
   const isBusy = view.kind === 'uploading' || view.kind === 'processing';
+  const fileName = selectedFile ? `📎 ${selectedFile.name}` : 'Файл не выбран';
 
   useEffect(() => () => requestRef.current?.abort(), []);
 
@@ -143,7 +136,7 @@ function App() {
     setView({ kind: 'idle' });
   };
 
-  const handleDrop = (event: React.DragEvent<HTMLButtonElement>) => {
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(false);
     selectFile(event.dataTransfer.files[0] ?? null);
@@ -190,83 +183,104 @@ function App() {
   };
 
   return (
-    <main className="app-shell">
-      <section className="converter" aria-labelledby="page-title">
-        <div className="title-block">
-          <span className="product-name">DocConverter</span>
-          <h1 id="page-title">Конвертация DOC в PDF</h1>
-          <p>Загрузите один документ DOC или DOCX размером до 10 МБ.</p>
+    <div className="app-wrapper">
+      <header className="app-header">
+        <div className="header-actions" />
+      </header>
+
+      <main className="main-content">
+        <div className="container">
+          <h1>📄 Конвертер DOC → PDF</h1>
+          <p className="description">Загрузите файл .doc или .docx, и мы превратим его в PDF</p>
+
+          <div
+            className={`upload-area ${isDragging ? 'dragging' : ''}`}
+            role="button"
+            tabIndex={isBusy ? -1 : 0}
+            onClick={() => !isBusy && fileInputRef.current?.click()}
+            onKeyDown={(event) => {
+              if (!isBusy && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              if (!isBusy) setIsDragging(true);
+            }}
+            onDragLeave={(event) => {
+              event.preventDefault();
+              setIsDragging(false);
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDrop}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              onChange={(event) => selectFile(event.target.files?.[0] ?? null)}
+              style={{ display: 'none' }}
+            />
+            <label>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }}
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              {isDragging ? 'Отпустите файл для загрузки' : 'Нажмите, чтобы выбрать файл'}
+            </label>
+            <p className="file-name">{fileName}</p>
+          </div>
+
+          <button type="button" onClick={handleConvert} disabled={isBusy}>
+            {selectedFile ? 'Конвертировать выбранный файл' : 'Конвертировать'}
+          </button>
+
+          <div
+            className="result"
+            aria-live="polite"
+            style={{
+              color: view.kind === 'completed'
+                ? '#0a7a3a'
+                : view.kind === 'error'
+                  ? '#d32f2f'
+                  : view.kind === 'uploading' || view.kind === 'processing'
+                    ? '#1a73e8'
+                    : '#666',
+            }}
+          >
+            {view.kind === 'idle' && '▼ Здесь появится результат'}
+            {view.kind === 'uploading' && '⏳ Загрузка файла...'}
+            {view.kind === 'processing' && `⏳ Статус: ${view.job.status}...`}
+            {view.kind === 'completed' && (
+              <>
+                <span>✅ Конвертация завершена!</span>
+                <a
+                  className="download-button"
+                  href={resultUrl(view.job.id)}
+                  download
+                >
+                  Скачать PDF
+                </a>
+              </>
+            )}
+            {view.kind === 'error' && `❌ Ошибка: ${view.message}`}
+          </div>
         </div>
-
-        <button
-          className={`upload-area${isDragging ? ' upload-area--dragging' : ''}`}
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          onDragEnter={(event) => {
-            event.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={(event) => {
-            event.preventDefault();
-            setIsDragging(false);
-          }}
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={handleDrop}
-          disabled={isBusy}
-        >
-          <span className="upload-area__action">
-            {isDragging ? 'Отпустите файл' : 'Выберите или перетащите файл'}
-          </span>
-          <span className="upload-area__details">
-            {selectedFile
-              ? `${selectedFile.name} · ${formatFileSize(selectedFile.size)}`
-              : 'DOC, DOCX · до 10 МБ'}
-          </span>
-        </button>
-
-        <input
-          ref={fileInputRef}
-          className="visually-hidden"
-          type="file"
-          accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          onChange={(event) => selectFile(event.target.files?.[0] ?? null)}
-          tabIndex={-1}
-          aria-hidden="true"
-        />
-
-        <button
-          className="primary-action"
-          type="button"
-          onClick={handleConvert}
-          disabled={isBusy || !selectedFile}
-        >
-          {view.kind === 'uploading'
-            ? 'Загрузка...'
-            : view.kind === 'processing'
-              ? 'Конвертация...'
-              : 'Конвертировать'}
-        </button>
-
-        <div className={`status status--${view.kind}`} aria-live="polite">
-          {view.kind === 'idle' && 'Результат появится здесь после конвертации.'}
-          {view.kind === 'uploading' && 'Файл загружается на сервер.'}
-          {view.kind === 'processing' && (
-            <>
-              Задание выполняется. Статус: <strong>{view.job.status}</strong>
-            </>
-          )}
-          {view.kind === 'completed' && (
-            <>
-              <span>PDF готов.</span>
-              <a className="download-link" href={resultUrl(view.job.id)}>
-                Скачать PDF
-              </a>
-            </>
-          )}
-          {view.kind === 'error' && view.message}
-        </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
 

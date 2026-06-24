@@ -15,7 +15,8 @@ React-клиент загружает файл, отслеживает сост�
 - экспоненциальные повторные попытки;
 - восстановление зависших `PROCESSING`-заданий;
 - удаление файлов после окончания срока хранения;
-- React-интерфейс загрузки, проверки статуса и скачивания результата;
+- React-интерфейс с выбором или перетаскиванием файла, автоматической проверкой
+  статуса и кнопкой скачивания PDF;
 - OpenAPI и Swagger UI.
 
 ## Стек
@@ -28,7 +29,7 @@ React-клиент загружает файл, отслеживает сост�
 | Flyway | версия из Spring Boot BOM |
 | Apache Tika | 3.3.1 |
 | Testcontainers | 2.0.5 |
-| Конвертер | Carbone HTTP API |
+| Конвертер | Carbone On-Premise 5.8.0 |
 | Сборка | Maven |
 | Frontend | React 19, TypeScript, Vite |
 | Web proxy | nginx |
@@ -120,7 +121,7 @@ Swagger UI после запуска доступен по адресу
 Через Docker Compose:
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
 Локальные значения читаются из `.env`. Репозиторий содержит безопасный шаблон
@@ -129,6 +130,24 @@ docker compose up --build
 После запуска веб-интерфейс доступен на `http://localhost:3000`, backend API —
 на `http://localhost:8080`. Порт интерфейса можно изменить переменной
 `FRONTEND_PORT`.
+
+Проверить состояние и посмотреть логи:
+
+```bash
+docker compose ps
+docker compose logs -f
+```
+
+Остановить приложение без удаления данных:
+
+```bash
+docker compose down
+```
+
+Frontend обращается к API через nginx по тому же origin `/api/v1`, поэтому для
+обычного Compose-запуска отдельная настройка CORS не требуется. После загрузки
+файла интерфейс опрашивает статус задания и показывает кнопку `Скачать PDF`,
+когда конвертация завершена.
 
 Локальный запуск только backend:
 
@@ -174,6 +193,10 @@ recovery, retention, local storage и HTTP API. Integration-тест Carbone ada
 schema validation и проверяет конкурентный `FOR UPDATE SKIP LOCKED`.
 
 Для полного набора тестов должен быть доступен Docker.
+
+Последняя локальная проверка: 74 backend-теста и 6 frontend-тестов прошли
+успешно. Полный Compose-сценарий от загрузки DOCX через frontend до скачивания
+готового PDF также проверен вручную.
 
 ## Ограничения
 

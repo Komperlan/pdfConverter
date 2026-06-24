@@ -26,11 +26,11 @@ afterEach(() => {
 });
 
 describe('App', () => {
-  it('renders the converter and disables submission without a file', () => {
+  it('renders the original converter interface', () => {
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: 'Конвертация DOC в PDF' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Конвертировать' })).toBeDisabled();
+    expect(screen.getByRole('heading', { name: '📄 Конвертер DOC → PDF' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Конвертировать' })).toBeEnabled();
   });
 
   it('rejects unsupported files before sending a request', () => {
@@ -40,8 +40,8 @@ describe('App', () => {
 
     fireEvent.change(input, { target: { files: [file] } });
 
-    expect(screen.getByText('Поддерживаются только файлы DOC и DOCX.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Конвертировать' })).toBeDisabled();
+    expect(screen.getByText(/Поддерживаются только файлы DOC и DOCX\./)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Конвертировать' })).toBeEnabled();
   });
 
   it('submits a document and renders a safe result link', async () => {
@@ -57,9 +57,10 @@ describe('App', () => {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     });
     fireEvent.change(input, { target: { files: [file] } });
-    fireEvent.click(screen.getByRole('button', { name: 'Конвертировать' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Конвертировать/ }));
 
     const downloadLink = await screen.findByRole('link', { name: 'Скачать PDF' });
+    expect(downloadLink).toHaveClass('download-button');
     expect(downloadLink).toHaveAttribute(
       'href',
       `/api/v1/conversions/${completedJob.id}/result`,
@@ -93,7 +94,7 @@ describe('App', () => {
     fireEvent.change(input, {
       target: { files: [new File(['content'], 'document.docx')] },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Конвертировать' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Конвертировать/ }));
 
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     await vi.advanceTimersByTimeAsync(2_000);
@@ -119,10 +120,10 @@ describe('App', () => {
     fireEvent.change(input, {
       target: { files: [new File(['content'], 'document.docx')] },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Конвертировать' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Конвертировать/ }));
 
     expect(await screen.findByText(
-      'Формат файла не поддерживается или не соответствует содержимому.',
+      /Формат файла не поддерживается или не соответствует содержимому\./,
     )).toBeInTheDocument();
   });
 
@@ -134,10 +135,10 @@ describe('App', () => {
     fireEvent.change(input, {
       target: { files: [new File(['content'], 'document.docx')] },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Конвертировать' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Конвертировать/ }));
 
     expect(await screen.findByText(
-      'Не удалось связаться с сервером. Проверьте, что backend запущен, и повторите попытку.',
+      /Не удалось связаться с сервером\. Проверьте, что backend запущен, и повторите попытку\./,
     )).toBeInTheDocument();
   });
 });
