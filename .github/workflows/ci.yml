@@ -78,6 +78,7 @@ jobs:
         
  
   deploy:
+    environment: VPS_HOST
     needs:
       - backend_build
       - frontend_build
