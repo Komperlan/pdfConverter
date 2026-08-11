@@ -1,5 +1,9 @@
 name: CI for odfConverter
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: komperlan
+
 on:
   push:
     branches: [main]
@@ -95,7 +99,3 @@ jobs:
           docker compose pull &&
           docker compose up -d --remove-orphans
           '
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_OWNER: komperlan
