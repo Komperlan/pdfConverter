@@ -79,30 +79,50 @@ jobs:
  
   deploy:
     environment: VPS_HOST
+
     needs:
       - backend_build
       - frontend_build
+
     if: github.event_name == 'push'
 
     runs-on: ubuntu-latest
 
     steps:
       - name: Configure SSH
-        run : |
+        env:
+          VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
+          VPS_KNOWN_HOSTS: ${{ vars.VPS_KNOWN_HOSTS }}
+        run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          printf '%s' "${{ secrets.VPS_SSH_KEY_B64 }}" \
+          if [ -z "$VPS_SSH_KEY_B64" ]; then
+            echo "ERROR: VPS_SSH_KEY_B64 is empty"
+            exit 1
+          fi
+
+          printf '%s' "$VPS_SSH_KEY_B64" \
             | base64 -d > ~/.ssh/id_ed25519
 
           chmod 600 ~/.ssh/id_ed25519
 
-          printf '%s\n' "${{ vars.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-      - name: Deploy
+          printf '%s\n' "$VPS_KNOWN_HOSTS" \
+            > ~/.ssh/known_hosts
+
+      - name: Validate SSH key
         run: |
-          ssh ${{ vars.VPS_USER }}@${{ vars.VPS_HOST }} '
-          cd /pdfconverter &&
-          export IMAGE_TAG="${{ github.sha }}" &&
-          docker compose pull &&
-          docker compose up -d --remove-orphans
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+          echo "SSH private key is valid"
+
+      - name: Deploy
+        env:
+          VPS_USER: ${{ vars.VPS_USER }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+        run: |
+          ssh "$VPS_USER@$VPS_HOST" '
+            cd /pdfconverter &&
+            export IMAGE_TAG="${{ github.sha }}" &&
+            docker compose pull &&
+            docker compose up -d --remove-orphans
           '
