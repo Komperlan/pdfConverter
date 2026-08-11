@@ -121,7 +121,7 @@ jobs:
           VPS_HOST: ${{ vars.VPS_HOST }}
         run: |
           ssh "$VPS_USER@$VPS_HOST" '
-            cd /pdfconverter &&
+            cd /home/dryunya/pdfconverter &&
             export IMAGE_TAG="${{ github.sha }}" &&
             docker compose pull &&
             docker compose up -d --remove-orphans
