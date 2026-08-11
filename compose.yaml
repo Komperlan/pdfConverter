@@ -40,9 +40,7 @@ services:
       - docconverter-network
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/komperlan/pdf-backend:${IMAGE_TAG}
     restart: unless-stopped
     init: true
     environment:
@@ -97,9 +95,7 @@ services:
       - docconverter-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/komperlan/pdf-frontend:${IMAGE_TAG}
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-3000}:80"
