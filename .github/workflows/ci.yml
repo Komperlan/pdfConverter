@@ -69,12 +69,12 @@ jobs:
       - name: build frontend
         run : |
           docker build -f frontend/Dockerfile \
-          -t ghcr.io/${{env.IMAGE_OWNER}}//pdf-frontend:${{ github.sha }} ./frontend
+          -t ghcr.io/${{env.IMAGE_OWNER}}/pdf-frontend:${{ github.sha }} ./frontend
       
       - name: push frontend
         if: github.event_name == 'push'
         run: |
-          docker push ghcr.io/${{ env.IMAGE_OWNER }}//pdf-frontend:${{ github.sha }}
+          docker push ghcr.io/${{ env.IMAGE_OWNER }}/pdf-frontend:${{ github.sha }}
         
  
   deploy:
