@@ -2,13 +2,17 @@ name: CI for odfConverter
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_OWNER: komperlan
+  env.IMAGE_OWNER: komperlan
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   test:
@@ -41,12 +45,12 @@ jobs:
       - name: build backend
         run: |
           docker build -f backend/Dockerfile \
-          -t ghcr.io/${{ IMAGE_OWNER }}/pdf-backend:${{ github.sha }} .
+          -t ghcr.io/${{ env.IMAGE_OWNER }}/pdf-backend:${{ github.sha }} .
   
       - name: Push backend
         if: github.event_name == 'push'
         run: |
-          docker push ghcr.io/${{ IMAGE_OWNER }}/pdf-backend:${{ github.sha }}
+          docker push ghcr.io/${{ env.IMAGE_OWNER }}/pdf-backend:${{ github.sha }}
 
   frontend_build:
     needs: test
@@ -65,12 +69,12 @@ jobs:
       - name: build frontend
         run : |
           docker build -f frontend/Dockerfile \
-          -t ghcr.io/${{IMAGE_OWNER}}/}/pdf-frontend:${{ github.sha }} ./frontend
+          -t ghcr.io/${{env.IMAGE_OWNER}}//pdf-frontend:${{ github.sha }} ./frontend
       
       - name: push frontend
         if: github.event_name == 'push'
         run: |
-          docker push ghcr.io/${{ IMAGE_OWNER }}/}/pdf-frontend:${{ github.sha }}
+          docker push ghcr.io/${{ env.IMAGE_OWNER }}//pdf-frontend:${{ github.sha }}
         
  
   deploy:
