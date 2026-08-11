@@ -2,7 +2,7 @@ name: CI for odfConverter
 
 env:
   REGISTRY: ghcr.io
-  env.IMAGE_OWNER: komperlan
+  IMAGE_OWNER: komperlan
 
 on:
   push:
